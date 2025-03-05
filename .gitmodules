@@ -1,0 +1,3 @@
+[submodule "micropython-mqtt"]
+	path = micropython-mqtt
+	url = git@github.com:andrewleech/micropython-mqtt.git
