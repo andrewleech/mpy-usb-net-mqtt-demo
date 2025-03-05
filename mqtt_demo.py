@@ -1,24 +1,17 @@
 import aiorepl
 import asyncio
-import json
 import machine
 import network
 import rp2
+import sys
 
+sys.path.insert(0, "micropython-mqtt")
 from mqtt_as import MQTTClient, config
-from asyncpin import AsyncPinDb
+# from asyncpin import AsyncPinDb
 from broker import Broker
 
 network.hostname("Degraves")
 network.USBNET().active(True)
-
-#network.USBNET().ifconfig()
-
-
-# Local configuration
-# config['ssid'] = 'your_network_name'  # Optional on ESP8266
-# config['wifi_pw'] = 'your_password'
-# config['server'] = '192.168.0.10'  # Change to suit e.g. 'iot.eclipse.org'
 
 
 async def wait_for_host_connection():
@@ -79,21 +72,11 @@ async def main():
 
         asyncio.create_task(aiorepl.task())
 
-        # asyncio.get_event_loop().run_forever()
+        asyncio.get_event_loop().run_forever()
             
-        # await client.up.wait()
-        n = 0
-        while True:
-            await asyncio.sleep(5)
-            # print('publish', n)
-            # If WiFi is down the following will pause for the duration.
-            # await client.publish('result_topic', str(n))
-            n += 1
     finally:
         if client:
             client.close()  # Prevent LmacRxBlk:1 errors
-
-
 
 async def _messages(client, broker):  # Respond to incoming messages
     async for topic, msg, retained in client.queue:
@@ -101,18 +84,18 @@ async def _messages(client, broker):  # Respond to incoming messages
         broker.publish(topic.decode(), msg.decode())
 
 async def _reconnect(client):  # Respond to connectivity being (re)established
+    initial = True
     while True:
         await client.up.wait()  # Wait on an Event
         client.up.clear()
         # renew subscriptions
-        # await client.subscribe('degraves_topic', 1)  
-        print("Subscribing")
+        print("Subscribing" if initial else "Reconnecting")
+        initial = False
         await client.subscribe('led_topic', 1)
 
 config["queue_len"] = 1  # Use event interface with default queue size
 config["quick"] = 1  # Fast startup as we're not waiting for wifi
 
 #MQTTClient.DEBUG = True  # Optional: print diagnostic messages
-
 
 asyncio.run(main())
