@@ -11,7 +11,7 @@ from mqtt_as import MQTTClient, config
 from broker import Broker
 
 network.hostname("Degraves")
-network.USBNET().active(True)
+network.USB_NET().active(True)
 
 
 async def wait_for_host_connection():
